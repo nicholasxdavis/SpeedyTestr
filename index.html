@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SpeedPulse - Internet Speed Test</title>
+
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <meta name="description" content="Measure your internet connection's download, upload, and ping with SpeedPulse, a simple, client-side speed test.">
+    <meta name="author" content="Blacnova">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        #runSpeedTest:disabled {
+            cursor: not-allowed;
+            background-color: #5a9ed1;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        'theme-blue': '#67b2e8',
+                        'theme-blue-dark': '#5a9ed1',
+                        'theme-blue-light': '#eaf5fc',
+                        'status-good': '#67b2e8',
+                        'status-bad': '#e53e3e',
+                        'status-neutral': '#718096',
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen font-sans antialiased text-gray-700 bg-gray-50 transition-colors duration-300">
+
+    <header class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 shadow-sm bg-white">
+        <div class="flex items-center gap-3">
+            <img src="icon.png" alt="SpeedPulse Logo" class="h-8 w-8"> <div>
+                <h1 class="text-xl font-bold text-gray-900">SpeedPulse <span class="text-theme-blue">- Internet Speed Test</span></h1> <div class="text-sm text-gray-600 mt-0.5">Quickly measure your connection's download, upload & ping.</div>
+            </div>
+        </div>
+        <div class="text-xs text-gray-500 hidden sm:block">No telemetry • MIT • GitHub Pages Ready</div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 sm:p-6">
+        
+        <section class="bg-white p-6 sm:p-10 rounded-xl shadow-lg border border-gray-200 mb-6 lg:mb-8" aria-labelledby="speedTestTitle">
+            <h2 id="speedTestTitle" class="text-3xl font-bold text-gray-900 mb-8 text-center">Your Internet Speed</h2>
+            
+            <div class="flex justify-center my-8">
+                <button id="runSpeedTest" class="bg-theme-blue hover:bg-theme-blue-dark text-white font-bold rounded-full w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center text-4xl sm:text-5xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105">
+                    GO
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 text-center mt-12" id="resultsArea">
+                <div class="p-4 bg-theme-blue-light rounded-lg border border-theme-blue/30">
+                    <div class="text-sm font-medium text-gray-600 uppercase">Ping</div>
+                    <div id="pingResult" class="text-5xl font-bold text-gray-900 mt-1">-</div>
+                    <div class="text-sm text-gray-500">ms</div>
+                </div>
+                <div class="p-4 bg-theme-blue-light rounded-lg border border-theme-blue/30">
+                    <div class="text-sm font-medium text-gray-600 uppercase">Download</div>
+                    <div id="downloadResult" class="text-5xl font-bold text-gray-900 mt-1">-</div>
+                    <div class="text-sm text-gray-500">Mbps</div>
+                </div>
+                <div class="p-4 bg-theme-blue-light rounded-lg border border-theme-blue/30">
+                    <div class="text-sm font-medium text-gray-600 uppercase">Upload</div>
+                    <div id="uploadResult" class="text-5xl font-bold text-gray-900 mt-1">-</div>
+                    <div class="text-sm text-gray-500">Mbps</div>
+                </div>
+            </div>
+
+            <div id="summaryBox" class="text-lg font-medium p-4 rounded-lg mt-8 transition-colors duration-300 bg-gray-100 text-gray-700 text-center">
+                Click "GO" to start the test.
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200" aria-labelledby="logTitle">
+                <h3 id="logTitle" class="text-xl font-semibold text-gray-900 mb-3">Test Log</h3>
+                <div id="log" class="log max-h-80 overflow-y-auto p-4 bg-gray-900 rounded-lg text-gray-200 text-xs font-mono border border-gray-700" aria-live="polite"></div>
+                 <div class="flex flex-wrap gap-3 mt-4">
+                    <button id="downloadReport" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm text-sm">Download JSON</button>
+                    <button id="copyReport" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm text-sm">Copy Report</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200" aria-labelledby="rawTitle">
+                <h3 id="rawTitle" class="text-xl font-semibold text-gray-900 mb-3">Raw Report (JSON)</h3>
+                <pre id="raw" class="log max-h-80 overflow-y-auto p-4 bg-gray-900 rounded-lg text-gray-200 text-xs font-mono whitespace-pre-wrap border border-gray-700"></pre>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto p-4 sm:p-6 text-sm text-gray-500 border-t border-gray-200 mt-6">
+        <div class="flex justify-between items-center">
+            <span>Created by Blacnova — MIT.</span>
+            <a href="https://buymeacoffee.com/galore" target="_blank" rel="noopener noreferrer" class="text-theme-blue hover:text-theme-blue-dark font-medium transition-colors">
+                Support Us &lt;3
+            </a>
+        </div>
+    </footer>
+
+    <script>
+    // START: JavaScript - Refactored for REAL Speed Test
+    (function(){
+        const logEl = document.getElementById('log');
+        const rawEl = document.getElementById('raw');
+        const summaryEl = document.getElementById('summaryBox');
+        const pingEl = document.getElementById('pingResult');
+        const downloadEl = document.getElementById('downloadResult');
+        const uploadEl = document.getElementById('uploadResult');
+        const goButton = document.getElementById('runSpeedTest');
+
+        function now(){ return (new Date()).toISOString(); }
+        function appendLog(s){ logEl.textContent = now() + ' — ' + s + '\n' + logEl.textContent; }
+        
+        // Helper to animate the numbers
+        function animateValue(el, start, end, duration, decimals = 0) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = progress * (end - start) + start;
+                el.textContent = value.toFixed(decimals);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    el.textContent = end.toFixed(decimals);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        /**
+         * NOTE: These server endpoints are PLACEHOLDERS.
+         * You MUST create these on your own server for this to work.
+         */
+        const PING_URL = '/ping'; // Should be a tiny file/endpoint
+        const DOWNLOAD_URL = '/download'; // Should be a large file (e.g., 50MB)
+        const UPLOAD_URL = '/upload'; // Should be an endpoint that accepts POST data
+
+        // --- Test Logic ---
+
+        async function testPing() {
+            summaryEl.textContent = 'Testing Ping...';
+            const startTime = performance.now();
+            try {
+                // Add a random query string to prevent caching
+                await fetch(PING_URL + '?t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+                const endTime = performance.now();
+                const ping = Math.round(endTime - startTime);
+                
+                animateValue(pingEl, 0, ping, 300, 0);
+                appendLog(`Ping test complete: ${ping} ms`);
+                return { value: ping, unit: 'ms' };
+            } catch (e) {
+                appendLog('Ping test failed: ' + e.message);
+                throw new Error('Ping test failed. Server endpoint might be down.');
+            }
+        }
+
+        async function testDownload() {
+            summaryEl.textContent = 'Testing Download Speed...';
+            downloadEl.textContent = '...';
+            const startTime = performance.now();
+            try {
+                // Add a random query string to prevent caching
+                const response = await fetch(DOWNLOAD_URL + '?t=' + Date.now(), { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error('Server responded with status ' + response.status);
+                }
+                
+                const data = await response.blob(); // Get all data
+                const endTime = performance.now();
+                
+                const durationInSeconds = (endTime - startTime) / 1000;
+                const sizeInBits = data.size * 8;
+                const speedInBps = sizeInBits / durationInSeconds;
+                const speedInMbps = speedInBps / 1024 / 1024;
+
+                animateValue(downloadEl, 0, speedInMbps, 500, 1);
+                appendLog(`Download test complete: ${speedInMbps.toFixed(1)} Mbps`);
+                return { value: parseFloat(speedInMbps.toFixed(1)), unit: 'Mbps' };
+
+            } catch (e) {
+                appendLog('Download test failed: ' + e.message);
+                throw new Error('Download test failed. Server endpoint might be down.');
+            }
+        }
+
+        async function testUpload() {
+            summaryEl.textContent = 'Testing Upload Speed...';
+            uploadEl.textContent = '...';
+            
+            // Generate a large block of data to upload (e.g., 25MB)
+            // We use a Blob for memory efficiency.
+            const dataSize = 25 * 1024 * 1024; // 25 MB
+            let data;
+            try {
+                // Try creating a random buffer
+                const randomBuffer = new Uint8Array(dataSize);
+                crypto.getRandomValues(randomBuffer);
+                data = new Blob([randomBuffer]);
+            } catch(e) {
+                // Fallback for older browsers or crypto issues
+                appendLog("Crypto fallback for upload data.");
+                const fallbackArray = new Array(dataSize).fill(0);
+                data = new Blob([new Uint8Array(fallbackArray)]);
+            }
+
+            const startTime = performance.now();
+            try {
+                await fetch(UPLOAD_URL, {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+                const endTime = performance.now();
+
+                const durationInSeconds = (endTime - startTime) / 1000;
+                const sizeInBits = data.size * 8;
+                const speedInBps = sizeInBits / durationInSeconds;
+                const speedInMbps = speedInBps / 1024 / 1024;
+
+                animateValue(uploadEl, 0, speedInMbps, 500, 1);
+                appendLog(`Upload test complete: ${speedInMbps.toFixed(1)} Mbps`);
+                return { value: parseFloat(speedInMbps.toFixed(1)), unit: 'Mbps' };
+
+            } catch (e) {
+                appendLog('Upload test failed: ' + e.message);
+                throw new Error('Upload test failed. Server endpoint might be down.');
+            }
+        }
+
+        // -- Main Runner --
+        async function runTest() {
+            appendLog('Starting speed test...');
+            goButton.disabled = true;
+            goButton.innerHTML = `<div class="animate-spin h-10 w-10 border-4 border-white border-t-transparent rounded-full"></div>`;
+            summaryEl.className = 'text-lg font-medium p-4 rounded-lg mt-8 transition-colors duration-300 bg-gray-100 text-gray-700 text-center';
+
+            pingEl.textContent = '-';
+            downloadEl.textContent = '-';
+            uploadEl.textContent = '-';
+
+            const results = { meta: { timestamp: now(), url: location.href, ua: navigator.userAgent }, test: {} };
+
+            try {
+                results.test.ping = await testPing();
+                results.test.download = await testDownload();
+                results.test.upload = await testUpload();
+                
+                summaryEl.textContent = 'Test Complete!';
+                summaryEl.className = 'text-xl font-bold p-4 rounded-lg mt-8 transition-colors duration-300 text-white bg-status-good shadow-lg shadow-blue-500/20';
+                results.meta.status = 'complete';
+
+            } catch (e) {
+                appendLog('Test error: ' + e.message);
+                summaryEl.textContent = e.message;
+                summaryEl.className = 'text-xl font-bold p-4 rounded-lg mt-8 transition-colors duration-300 text-white bg-status-bad shadow-lg shadow-red-500/20';
+                results.meta.status = 'error';
+                results.meta.error = e.message;
+            }
+
+            // Finalize
+            rawEl.textContent = JSON.stringify(results, null, 2);
+            window._lastSpeedReport = results;
+            goButton.disabled = false;
+            goButton.innerHTML = 'GO';
+            appendLog('Test finished.');
+            return results;
+        }
+
+        // Public API
+        window.speedTester = {
+            run: runTest,
+            getReport: () => window._lastSpeedReport || null
+        };
+
+        // Wire UI
+        goButton.addEventListener('click', () => { window.speedTester.run(); });
+        
+        document.getElementById('downloadReport').addEventListener('click', () => {
+            const data = window._lastSpeedReport || {meta:{timestamp:now()},note:'no report yet'};
+            const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'speedtest-report-'+(new Date()).toISOString().split('T')[0]+'.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        });
+        
+        document.getElementById('copyReport').addEventListener('click', async () => {
+            try{ 
+                await navigator.clipboard.writeText(JSON.stringify(window._lastSpeedReport || {meta:{timestamp:now()},note:'none'})); 
+                appendLog('Report copied to clipboard'); 
+            }catch(e){ 
+                appendLog('Copy failed: '+e); 
+            }
+        });
+
+        appendLog('Ready. Click GO to start test.');
+        console.log('speedTester available: window.speedTester.run(), .getReport()');
+    })();
+    // END: JavaScript
+    </script>
+</body>
+</html>
