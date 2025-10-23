@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>SpeedPulse - Internet Speed Test</title>
+    <title>SpeedyTestr - Download Speed Test</title>
 
     <link rel="icon" href="https://placehold.co/32x32/67b2e8/ffffff?text=SP" type="image/png">
     <link rel="apple-touch-icon" href="https://placehold.co/180x180/67b2e8/ffffff?text=SP">
 
-    <meta name="description" content="Measure your internet connection's download and latency with SpeedPulse, a simple, client-side speed test.">
+    <meta name="description" content="Measure your internet connection's download and latency with SpeedyTestr, a simple, client-side speed test.">
     <meta name="author" content="Blacnova">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,9 +46,9 @@
     <header class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 shadow-sm bg-white">
         <div class="flex items-center gap-3">
             <!-- Using a placeholder icon -->
-            <img src="https://placehold.co/32x32/67b2e8/ffffff?text=SP" alt="SpeedPulse Logo" class="h-8 w-8 rounded-full"> 
+            <img src="https://placehold.co/32x32/67b2e8/ffffff?text=SP" alt="SpeedyTestr Logo" class="h-8 w-8 rounded-full"> 
             <div>
-                <h1 class="text-xl font-bold text-gray-900">SpeedPulse <span class="text-theme-blue">- Internet Speed Test</span></h1> 
+                <h1 class="text-xl font-bold text-gray-900">SpeedyTestr <span class="text-theme-blue">- Download Speed Test</span></h1> 
                 <div class="text-sm text-gray-600 mt-0.5">Quickly measure your connection's download & latency.</div>
             </div>
         </div>
@@ -66,7 +66,8 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 text-center mt-12" id="resultsArea">
+            <!-- Updated grid to 2 columns -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-4 text-center mt-12" id="resultsArea">
                 <div class="p-4 bg-theme-blue-light rounded-lg border border-theme-blue/30">
                     <div class="text-sm font-medium text-gray-600 uppercase">Latency</div>
                     <div id="pingResult" class="text-5xl font-bold text-gray-900 mt-1">-</div>
@@ -77,11 +78,7 @@
                     <div id="downloadResult" class="text-5xl font-bold text-gray-900 mt-1">-</div>
                     <div class="text-sm text-gray-500">Mbps</div>
                 </div>
-                <div class="p-4 bg-gray-100 rounded-lg border border-gray-200">
-                    <div class="text-sm font-medium text-gray-500 uppercase">Upload</div>
-                    <div id="uploadResult" class="text-5xl font-bold text-gray-400 mt-1">N/A</div>
-                    <div class="text-sm text-gray-400">(Server Req.)</div>
-                </div>
+                <!-- Removed Upload Card -->
             </div>
 
             <div id="summaryBox" class="text-lg font-medium p-4 rounded-lg mt-8 transition-colors duration-300 bg-gray-100 text-gray-700 text-center">
@@ -89,7 +86,7 @@
             </div>
         </section>
 
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 lg:mb-8">
             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200" aria-labelledby="logTitle">
                 <h3 id="logTitle" class="text-xl font-semibold text-gray-900 mb-3">Test Log</h3>
                 <div id="log" class="log max-h-80 overflow-y-auto p-4 bg-gray-900 rounded-lg text-gray-200 text-xs font-mono border border-gray-700" aria-live="polite"></div>
@@ -102,6 +99,29 @@
             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200" aria-labelledby="rawTitle">
                 <h3 id="rawTitle" class="text-xl font-semibold text-gray-900 mb-3">Raw Report (JSON)</h3>
                 <pre id="raw" class="log max-h-80 overflow-y-auto p-4 bg-gray-900 rounded-lg text-gray-200 text-xs font-mono whitespace-pre-wrap border border-gray-700"></pre>
+            </div>
+        </section>
+
+        <!-- New History Section -->
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200" aria-labelledby="historyTitle">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="historyTitle" class="text-xl font-semibold text-gray-900">Test History</h3>
+                <button id="clearHistory" class="text-sm text-theme-blue hover:text-theme-blue-dark font-medium transition-colors">Clear History</button>
+            </div>
+            <div class="max-h-96 overflow-y-auto">
+                <table class="w-full text-left table-auto">
+                    <thead class="sticky top-0 bg-gray-50">
+                        <tr>
+                            <th class="text-sm font-semibold text-gray-600 p-3">Time</th>
+                            <th class="text-sm font-semibold text-gray-600 p-3">Latency (ms)</th>
+                            <th class="text-sm font-semibold text-gray-600 p-3">Download (Mbps)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyContainer" class="divide-y divide-gray-200">
+                        <!-- History rows will be injected here -->
+                    </tbody>
+                </table>
+                <div id="noHistory" class="text-center p-6 text-gray-500">No test history found.</div>
             </div>
         </section>
 
@@ -123,8 +143,14 @@
         const summaryEl = document.getElementById('summaryBox');
         const pingEl = document.getElementById('pingResult');
         const downloadEl = document.getElementById('downloadResult');
-        const uploadEl = document.getElementById('uploadResult');
         const goButton = document.getElementById('runSpeedTest');
+        
+        // History Elements
+        const historyContainer = document.getElementById('historyContainer');
+        const noHistoryEl = document.getElementById('noHistory');
+        const clearHistoryBtn = document.getElementById('clearHistory');
+        
+        let testHistory = [];
 
         function now(){ return (new Date()).toISOString(); }
         function appendLog(s){ logEl.textContent = now() + ' — ' + s + '\n' + logEl.textContent; }
@@ -147,75 +173,236 @@
 
         /**
          * We use public, cross-origin-enabled (CORS) servers for this.
-         * Google's 8.8.8.8 is not fetch-able. We use a known CDN instead.
-         * Using a 10MB file from CacheFly CDN.
+         * Using a 50MB file from CacheFly CDN for a longer test.
          */
         const LATENCY_URL = 'https://www.google.com/favicon.ico'; // A very small, fast-loading file
-        const DOWNLOAD_URL = 'https://cachefly.cachefly.net/10mb.test'; // 10MB test file
-        const DOWNLOAD_SIZE_BITS = 10 * 1024 * 1024 * 8; // 10MB in bits
+        const DOWNLOAD_URL = 'https://cachefly.cachefly.net/50mb.test'; // 50MB test file
+        const DOWNLOAD_SIZE_BITS = 50 * 1024 * 1024 * 8; // 50MB in bits
 
         // --- Test Logic ---
 
+        // Helper function for a fetch request with a timeout
+        async function fetchWithTimeout(url, options, timeout = 2000) {
+            return new Promise((resolve, reject) => {
+                const controller = new AbortController();
+                const timer = setTimeout(() => {
+                    controller.abort();
+                    reject(new Error('Request timed out'));
+                }, timeout);
+
+                fetch(url, { ...options, signal: controller.signal })
+                    .then(response => {
+                        clearTimeout(timer);
+                        resolve(response);
+                    })
+                    .catch(error => {
+                        clearTimeout(timer);
+                        if (error.name === 'AbortError') {
+                            // We already rejected with 'Request timed out'
+                        } else {
+                            reject(error);
+                        }
+                    });
+            });
+        }
+
         async function testLatency() {
-            summaryEl.textContent = 'Testing Latency...';
+            summaryEl.textContent = 'Testing Latency (5 pings)...';
             pingEl.textContent = '...';
-            const startTime = performance.now();
-            try {
-                // Use 'no-cors' mode. We don't need the content, just the timing.
-                // Add a random query string to prevent caching.
-                await fetch(LATENCY_URL + '?t=' + Date.now(), { method: 'HEAD', mode: 'no-cors', cache: 'no-store' });
-                const endTime = performance.now();
-                const latency = Math.round(endTime - startTime);
-                
-                animateValue(pingEl, 0, latency, 300, 0);
-                appendLog(`Latency test complete: ${latency} ms`);
-                return { value: latency, unit: 'ms' };
-            } catch (e) {
-                appendLog('Latency test failed: ' + e.message);
+            
+            const numPings = 5;
+            let totalLatency = 0;
+            let successfulPings = 0;
+            const latencies = [];
+
+            appendLog(`Starting latency test (${numPings} pings)...`);
+
+            for (let i = 0; i < numPings; i++) {
+                const startTime = performance.now();
+                try {
+                    // Add a random query string to prevent caching, and 'i' for unique request
+                    // Added 2000ms timeout per ping
+                    await fetchWithTimeout(
+                        LATENCY_URL + '?t=' + Date.now() + '&i=' + i, 
+                        { method: 'HEAD', mode: 'no-cors', cache: 'no-store' },
+                        2000 
+                    );
+                    const endTime = performance.now();
+                    const latency = Math.round(endTime - startTime);
+                    latencies.push(latency);
+                    totalLatency += latency;
+                    successfulPings++;
+                    appendLog(`Ping ${i + 1}/${numPings}: ${latency} ms`);
+                } catch (e) {
+                    appendLog(`Ping ${i + 1}/${numPings} failed: ${e.message}`);
+                }
+                // Small delay between pings to avoid flooding
+                if (i < numPings - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 50)); 
+                }
+            }
+
+            if (successfulPings === 0) {
+                appendLog('All latency tests failed.');
                 throw new Error('Latency test failed. Check CORS or network.');
             }
+
+            const avgLatency = Math.round(totalLatency / successfulPings);
+            
+            animateValue(pingEl, 0, avgLatency, 300, 0);
+            appendLog(`Latency test complete. Average: ${avgLatency} ms (from ${successfulPings} successful pings)`);
+            return { value: avgLatency, unit: 'ms', individualPings: latencies };
         }
 
         async function testDownload() {
             summaryEl.textContent = 'Testing Download Speed...';
             downloadEl.textContent = '...';
-            const startTime = performance.now();
+            
+            const controller = new AbortController();
+            // Set a 30-second timeout for the entire download test
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                appendLog('Download test timed out.');
+            }, 30000);
+
+            let response;
             try {
                 // Add a random query string to prevent caching
-                const response = await fetch(DOWNLOAD_URL + '?t=' + Date.now(), { cache: 'no-store' });
+                response = await fetch(DOWNLOAD_URL + '?t=' + Date.now(), { 
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+                
                 if (!response.ok) {
                     throw new Error('Server responded with status ' + response.status);
                 }
-                
-                await response.blob(); // Get all data
-                const endTime = performance.now();
-                
-                const durationInSeconds = (endTime - startTime) / 1000;
-                
-                // Check for absurdly fast times (likely cached)
-                if (durationInSeconds < 0.1) {
-                    appendLog('Download time too fast, likely cached. Retrying...');
-                    return testDownload(); // Retry
+
+                if (!response.body) {
+                    throw new Error('ReadableStream not supported or not available.');
                 }
 
+                const reader = response.body.getReader();
+                let receivedLength = 0; // bytes
+                let startTime = performance.now();
+                let lastUiUpdateTime = startTime;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+                    receivedLength += value.length;
+
+                    const now = performance.now();
+                    const durationInSeconds = (now - startTime) / 1000;
+                    
+                    // Update UI only every 250ms to avoid DOM thrashing
+                    if (now - lastUiUpdateTime > 250 && durationInSeconds > 0) {
+                        const speedInBps = (receivedLength * 8) / durationInSeconds;
+                        const speedInMbps = speedInBps / 1024 / 1024;
+                        downloadEl.textContent = speedInMbps.toFixed(1); // Live update
+                        lastUiUpdateTime = now;
+                    }
+                }
+
+                clearTimeout(timeoutId); // Test complete, clear timeout
+
+                const endTime = performance.now();
+                const durationInSeconds = (endTime - startTime) / 1000;
+
+                // Use the known file size for the final, most accurate calculation
                 const speedInBps = DOWNLOAD_SIZE_BITS / durationInSeconds;
                 const speedInMbps = speedInBps / 1024 / 1024;
 
-                animateValue(downloadEl, 0, speedInMbps, 500, 1);
+                downloadEl.textContent = speedInMbps.toFixed(1); // Final, accurate value
                 appendLog(`Download test complete: ${speedInMbps.toFixed(1)} Mbps`);
                 return { value: parseFloat(speedInMbps.toFixed(1)), unit: 'Mbps' };
 
             } catch (e) {
-                appendLog('Download test failed: ' + e.message);
-                throw new Error('Download test failed. Server endpoint might be down.');
+                clearTimeout(timeoutId); // Clear timeout on error
+                if (e.name === 'AbortError') {
+                     throw new Error('Download test timed out or was cancelled.');
+                } else {
+                    appendLog('Download test failed: ' + e.message);
+                    throw new Error('Download test failed. Server endpoint might be down.');
+                }
             }
         }
 
-        async function testUpload() {
-            // This is impossible without a backend.
-            appendLog('Upload test skipped (requires a backend server).');
-            uploadEl.textContent = 'N/A';
-            return { value: null, unit: 'Mbps', info: 'N/A - Requires Server' };
+
+        // --- History Logic ---
+
+        function renderHistory() {
+            historyContainer.innerHTML = ''; // Clear existing rows
+            if (testHistory.length === 0) {
+                noHistoryEl.style.display = 'block';
+                historyContainer.style.display = 'none';
+            } else {
+                noHistoryEl.style.display = 'none';
+                historyContainer.style.display = '';
+                
+                // Show most recent first
+                testHistory.slice().reverse().forEach(test => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'text-sm text-gray-700';
+                    
+                    const time = new Date(test.timestamp).toLocaleString();
+                    const latency = test.latency?.value.toFixed(0) || '-';
+                    const download = test.download?.value.toFixed(1) || '-';
+
+                    tr.innerHTML = `
+                        <td class="p-3">${time}</td>
+                        <td class="p-3">${latency}</td>
+                        <td class="p-3">${download}</td>
+                    `;
+                    historyContainer.appendChild(tr);
+                });
+            }
+        }
+
+        function saveHistory(result) {
+            const historyEntry = {
+                timestamp: result.meta.timestamp,
+                latency: result.test.latency,
+                download: result.test.download
+            };
+            
+            // Add new entry and keep only the last 10
+            testHistory.push(historyEntry);
+            if (testHistory.length > 10) {
+                testHistory.shift(); // Remove the oldest entry
+            }
+
+            try {
+                localStorage.setItem('speedyTestrHistory', JSON.stringify(testHistory));
+            } catch (e) {
+                appendLog('Could not save history to localStorage: ' + e.message);
+            }
+            
+            renderHistory();
+        }
+
+        function loadHistory() {
+            try {
+                const history = localStorage.getItem('speedyTestrHistory');
+                if (history) {
+                    testHistory = JSON.parse(history);
+                }
+            } catch (e) {
+                appendLog('Could not load history from localStorage: ' + e.message);
+                testHistory = [];
+            }
+            renderHistory();
+        }
+
+        function clearHistory() {
+            testHistory = [];
+            try {
+                localStorage.removeItem('speedyTestrHistory');
+            } catch (e) {
+                appendLog('Could not clear history: ' + e.message);
+            }
+            renderHistory();
         }
 
         // -- Main Runner --
@@ -227,18 +414,19 @@
 
             pingEl.textContent = '-';
             downloadEl.textContent = '-';
-            uploadEl.textContent = 'N/A';
 
             const results = { meta: { timestamp: now(), url: location.href, ua: navigator.userAgent }, test: {} };
 
             try {
                 results.test.latency = await testLatency();
                 results.test.download = await testDownload();
-                results.test.upload = await testUpload();
                 
                 summaryEl.textContent = 'Test Complete!';
                 summaryEl.className = 'text-xl font-bold p-4 rounded-lg mt-8 transition-colors duration-300 text-white bg-status-good shadow-lg shadow-blue-500/20';
                 results.meta.status = 'complete';
+                
+                // Save successful test to history
+                saveHistory(results);
 
             } catch (e) {
                 appendLog('Test error: ' + e.message);
@@ -265,6 +453,7 @@
 
         // Wire UI
         goButton.addEventListener('click', () => { window.speedTester.run(); });
+        clearHistoryBtn.addEventListener('click', clearHistory);
         
         document.getElementById('downloadReport').addEventListener('click', () => {
             const data = window._lastSpeedReport || {meta:{timestamp:now()},note:'no report yet'};
@@ -291,9 +480,12 @@
             }
         });
 
+        // Initial Load
+        loadHistory();
         appendLog('Ready. Click GO to start test.');
         console.log('speedTester available: window.speedTester.run(), .getReport()');
     })();
     </script>
 </body>
 </html>
+
