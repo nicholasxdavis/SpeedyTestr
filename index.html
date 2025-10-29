@@ -12,21 +12,21 @@
     <meta name="author" content="Blacnova">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vercel/geist@1.3.0/dist/fonts/geist-sans/variable/geist-sans.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        #runSpeedTest:disabled {
-            cursor: not-allowed;
-            background-color: #5a9ed1;
-        }
-    </style>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        'sans': ['Poppins', 'sans-serif'],
+                        // Set Geist as primary
+                        'sans': ['Geist Sans', 'Poppins', 'sans-serif'],
                     },
                     colors: {
                         'theme-blue': '#67b2e8',
@@ -36,102 +36,122 @@
                         'status-bad': '#e53e3e',
                         'status-neutral': '#718096',
                     },
+                    // Added rounded-3xl for cards/buttons
+                    borderRadius: {
+                        '3xl': '1.5rem',
+                    }
                 }
             }
         }
     </script>
 </head>
-<body class="min-h-screen font-sans antialiased text-gray-700 bg-gray-50 transition-colors duration-300">
+<body class="min-h-screen font-sans antialiased text-neutral-800 bg-neutral-100 transition-colors duration-300">
 
-    <header class="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 shadow-sm bg-white">
-        <div class="flex items-center gap-3">
-            <!-- Using a placeholder icon -->
-            <img src="https://placehold.co/32x32/67b2e8/ffffff?text=SP" alt="SpeedyTestr Logo" class="h-8 w-8 rounded-full"> 
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">SpeedyTestr <span class="text-theme-blue">- Download Speed Test</span></h1> 
-                <div class="text-sm text-gray-600 mt-0.5">Quickly measure your connection's download & latency.</div>
+    <header class="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-sm shadow-sm border-b border-neutral-900/10">
+        <div class="container mx-auto p-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i data-lucide="gauge" class="h-6 w-6 text-theme-blue"></i>
+                <h1 class="text-xl font-light text-neutral-900">SpeedyTestr</h1> 
             </div>
+            <div class="text-xs text-neutral-500 hidden sm:block">No telemetry • MIT • GitHub Pages Ready</div>
         </div>
-        <div class="text-xs text-gray-500 hidden sm:block">No telemetry • MIT • GitHub Pages Ready</div>
     </header>
 
-    <main class="max-w-4xl mx-auto p-4 sm:p-6">
+    <main class="container mx-auto p-4 md:p-8">
         
-        <section class="bg-white p-6 sm:p-10 rounded-xl shadow-lg border border-gray-200 mb-6 lg:mb-8" aria-labelledby="speedTestTitle">
-            <h2 id="speedTestTitle" class="text-3xl font-bold text-gray-900 mb-8 text-center">Your Internet Speed</h2>
+        <header class="text-center mb-8 md:mb-12">
+            <i data-lucide="gauge" class="w-12 h-12 mx-auto text-theme-blue"></i>
+            <h1 class="text-4xl font-light text-neutral-800 mt-2">Download Speed Test</h1>
+            <p class="text-lg text-neutral-600 mt-2">Quickly measure your connection's download & latency.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <div class="flex justify-center my-8">
-                <button id="runSpeedTest" class="bg-theme-blue hover:bg-theme-blue-dark text-white font-bold rounded-full w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center text-4xl sm:text-5xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105">
-                    GO
-                </button>
+            <div class="lg:col-span-7 space-y-8">
+                <section class="bg-white p-6 sm:p-10 rounded-3xl shadow-lg border border-neutral-900/10" aria-labelledby="speedTestTitle">
+                    <h2 id="speedTestTitle" class="text-2xl font-semilight text-neutral-700 mb-8 text-center">Your Internet Speed</h2>
+                    
+                    <div class="flex justify-center my-8">
+                        <button id="runSpeedTest" class="bg-theme-blue hover:bg-theme-blue-dark text-white font-normal rounded-full w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center text-5xl shadow-lg shadow-theme-blue/20 hover:shadow-xl hover:shadow-theme-blue/30 transition-all duration-300 ease-in-out transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed">
+                            GO
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center mt-12" id="resultsArea">
+                        <div class="p-6 bg-neutral-50 rounded-2xl border border-neutral-900/10">
+                            <div class="text-sm font-medium text-neutral-500 uppercase">Latency</div>
+                            <div id="pingResult" class="text-5xl font-light text-neutral-900 mt-1">-</div>
+                            <div class="text-sm text-neutral-500">ms</div>
+                        </div>
+                        <div class="p-6 bg-neutral-50 rounded-2xl border border-neutral-900/10">
+                            <div class="text-sm font-medium text-neutral-500 uppercase">Download</div>
+                            <div id="downloadResult" class="text-5xl font-light text-neutral-900 mt-1">-</div>
+                            <div class="text-sm text-neutral-500">Mbps</div>
+                        </div>
+                    </div>
+
+                    <div id="summaryBox" class="text-lg font-medium p-4 rounded-2xl mt-8 transition-colors duration-300 bg-neutral-100 text-neutral-700 border border-neutral-200 text-center">
+                        Click "GO" to start the test.
+                    </div>
+                </section>
             </div>
 
-            <!-- Updated grid to 2 columns -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-4 text-center mt-12" id="resultsArea">
-                <div class="p-4 bg-theme-blue-light rounded-lg border border-theme-blue/30">
-                    <div class="text-sm font-medium text-gray-600 uppercase">Latency</div>
-                    <div id="pingResult" class="text-5xl font-bold text-gray-900 mt-1">-</div>
-                    <div class="text-sm text-gray-500">ms</div>
+            <div class="lg:col-span-5 lg:sticky lg:top-28 space-y-8">
+                <section class="bg-white p-6 rounded-3xl shadow-lg border border-neutral-900/10" aria-labelledby="logTitle">
+                    <h3 id="logTitle" class="text-xl font-semilight text-neutral-700 mb-4">Test Log</h3>
+                    <div id="log" class="log max-h-60 overflow-y-auto p-4 bg-neutral-900 rounded-xl text-neutral-200 text-xs font-mono border border-neutral-700" aria-live="polite"></div>
+                     <div class="flex flex-wrap gap-3 mt-4">
+                        <button id="downloadReport" class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium py-2 px-4 rounded-3xl transition duration-150 ease-in-out text-sm flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            Download JSON
+                        </button>
+                        <button id="copyReport" class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium py-2 px-4 rounded-3xl transition duration-150 ease-in-out text-sm flex items-center gap-2">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            Copy Report
+                        </button>
+                    </div>
+                </section>
+
+                <section class="bg-white p-6 rounded-3xl shadow-lg border border-neutral-900/10" aria-labelledby="rawTitle">
+                    <h3 id="rawTitle" class="text-xl font-semilight text-neutral-700 mb-4">Raw Report (JSON)</h3>
+                    <pre id="raw" class="log max-h-80 overflow-y-auto p-4 bg-neutral-900 rounded-xl text-neutral-200 text-xs font-mono whitespace-pre-wrap border border-neutral-700"></pre>
+                </section>
+            </div>
+            
+            <section class="lg:col-span-12 bg-white p-6 sm:p-8 rounded-3xl shadow-lg border border-neutral-900/10" aria-labelledby="historyTitle">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="historyTitle" class="text-xl font-semilight text-neutral-700">Test History</h3>
+                    <button id="clearHistory" class="text-sm text-theme-blue hover:text-theme-blue-dark font-medium transition-colors">Clear History</button>
                 </div>
-                <div class="p-4 bg-theme-blue-light rounded-lg border border-theme-blue/30">
-                    <div class="text-sm font-medium text-gray-600 uppercase">Download</div>
-                    <div id="downloadResult" class="text-5xl font-bold text-gray-900 mt-1">-</div>
-                    <div class="text-sm text-gray-500">Mbps</div>
+                <div class="max-h-96 overflow-y-auto">
+                    <table class="w-full text-left table-auto">
+                        <thead class="sticky top-0 bg-neutral-50">
+                            <tr>
+                                <th class="text-sm font-semibold text-neutral-600 p-3">Time</th>
+                                <th class="text-sm font-semibold text-neutral-600 p-3">Latency (ms)</th>
+                                <th class="text-sm font-semibold text-neutral-600 p-3">Download (Mbps)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyContainer" class="divide-y divide-neutral-200">
+                            </tbody>
+                    </table>
+                    <div id="noHistory" class="text-center p-6 text-neutral-500">
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto text-neutral-400"></i>
+                        <p class="mt-2">No test history found.</p>
+                    </div>
                 </div>
-                <!-- Removed Upload Card -->
-            </div>
+            </section>
 
-            <div id="summaryBox" class="text-lg font-medium p-4 rounded-lg mt-8 transition-colors duration-300 bg-gray-100 text-gray-700 text-center">
-                Click "GO" to start the test.
-            </div>
-        </section>
-
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 lg:mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200" aria-labelledby="logTitle">
-                <h3 id="logTitle" class="text-xl font-semibold text-gray-900 mb-3">Test Log</h3>
-                <div id="log" class="log max-h-80 overflow-y-auto p-4 bg-gray-900 rounded-lg text-gray-200 text-xs font-mono border border-gray-700" aria-live="polite"></div>
-                 <div class="flex flex-wrap gap-3 mt-4">
-                    <button id="downloadReport" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm text-sm">Download JSON</button>
-                    <button id="copyReport" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium py-2 px-4 rounded-lg transition duration-150 ease-in-out shadow-sm text-sm">Copy Report</button>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200" aria-labelledby="rawTitle">
-                <h3 id="rawTitle" class="text-xl font-semibold text-gray-900 mb-3">Raw Report (JSON)</h3>
-                <pre id="raw" class="log max-h-80 overflow-y-auto p-4 bg-gray-900 rounded-lg text-gray-200 text-xs font-mono whitespace-pre-wrap border border-gray-700"></pre>
-            </div>
-        </section>
-
-        <!-- New History Section -->
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200" aria-labelledby="historyTitle">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="historyTitle" class="text-xl font-semibold text-gray-900">Test History</h3>
-                <button id="clearHistory" class="text-sm text-theme-blue hover:text-theme-blue-dark font-medium transition-colors">Clear History</button>
-            </div>
-            <div class="max-h-96 overflow-y-auto">
-                <table class="w-full text-left table-auto">
-                    <thead class="sticky top-0 bg-gray-50">
-                        <tr>
-                            <th class="text-sm font-semibold text-gray-600 p-3">Time</th>
-                            <th class="text-sm font-semibold text-gray-600 p-3">Latency (ms)</th>
-                            <th class="text-sm font-semibold text-gray-600 p-3">Download (Mbps)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyContainer" class="divide-y divide-gray-200">
-                        <!-- History rows will be injected here -->
-                    </tbody>
-                </table>
-                <div id="noHistory" class="text-center p-6 text-gray-500">No test history found.</div>
-            </div>
-        </section>
-
+        </div>
     </main>
 
-    <footer class="max-w-7xl mx-auto p-4 sm:p-6 text-sm text-gray-500 border-t border-gray-200 mt-6">
-        <div class="flex justify-between items-center">
-            <span>Created by Blacnova — MIT.</span>
-            <a href="https://buymeacoffee.com/galore" target="_blank" rel="noopener noreferrer" class="text-theme-blue hover:text-theme-blue-dark font-medium transition-colors">
-                Support Us &lt;3
+    <footer class="w-full border-t border-neutral-900/10 bg-white mt-12">
+        <div class="container mx-auto p-8 text-center text-neutral-500 flex flex-col items-center space-y-4">
+            <img src="https://www.blacnova.net/img/bn_black.png" alt="Blacnova Logo" class="h-8 opacity-70">
+            <p class="text-sm">Created by Blacnova — MIT.</p>
+            <a href="https://buymeacoffee.com/galore" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-theme-blue hover:text-theme-blue-dark transition flex items-center space-x-1.5 px-4 py-2 rounded-3xl bg-neutral-100 hover:bg-neutral-200">
+                <i data-lucide="coffee" class="w-4 h-4"></i>
+                <span>Support Us</span>
             </a>
         </div>
     </footer>
@@ -344,7 +364,7 @@
                 // Show most recent first
                 testHistory.slice().reverse().forEach(test => {
                     const tr = document.createElement('tr');
-                    tr.className = 'text-sm text-gray-700';
+                    tr.className = 'text-sm text-neutral-700';
                     
                     const time = new Date(test.timestamp).toLocaleString();
                     const latency = test.latency?.value.toFixed(0) || '-';
@@ -410,7 +430,7 @@
             appendLog('Starting speed test...');
             goButton.disabled = true;
             goButton.innerHTML = `<div class="animate-spin h-10 w-10 border-4 border-white border-t-transparent rounded-full"></div>`;
-            summaryEl.className = 'text-lg font-medium p-4 rounded-lg mt-8 transition-colors duration-300 bg-gray-100 text-gray-700 text-center';
+            summaryEl.className = 'text-lg font-medium p-4 rounded-2xl mt-8 transition-colors duration-300 bg-neutral-100 text-neutral-700 border border-neutral-200 text-center';
 
             pingEl.textContent = '-';
             downloadEl.textContent = '-';
@@ -422,7 +442,7 @@
                 results.test.download = await testDownload();
                 
                 summaryEl.textContent = 'Test Complete!';
-                summaryEl.className = 'text-xl font-bold p-4 rounded-lg mt-8 transition-colors duration-300 text-white bg-status-good shadow-lg shadow-blue-500/20';
+                summaryEl.className = 'text-xl font-bold p-4 rounded-2xl mt-8 transition-colors duration-300 text-white bg-status-good shadow-lg shadow-theme-blue/20';
                 results.meta.status = 'complete';
                 
                 // Save successful test to history
@@ -431,7 +451,7 @@
             } catch (e) {
                 appendLog('Test error: ' + e.message);
                 summaryEl.textContent = e.message;
-                summaryEl.className = 'text-xl font-bold p-4 rounded-lg mt-8 transition-colors duration-300 text-white bg-status-bad shadow-lg shadow-red-500/20';
+                summaryEl.className = 'text-xl font-bold p-4 rounded-2xl mt-8 transition-colors duration-300 text-white bg-status-bad shadow-lg shadow-red-500/20';
                 results.meta.status = 'error';
                 results.meta.error = e.message;
             }
@@ -484,8 +504,10 @@
         loadHistory();
         appendLog('Ready. Click GO to start test.');
         console.log('speedTester available: window.speedTester.run(), .getReport()');
+        
+        // Render all Lucide icons
+        lucide.createIcons();
     })();
     </script>
 </body>
 </html>
-
